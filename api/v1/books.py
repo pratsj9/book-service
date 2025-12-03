@@ -38,7 +38,7 @@ async def get_book_by_id(id:int , db: SessionDep) -> BookEntity:
 
 
 @router.post("/v1/books", summary="Create a new Book entry",
-            status_code=201 ,  tags=["book-service"])
+            status_code=201 ,  tags=["books"])
 async def create_book(book_data:BookEntity , db: SessionDep) -> BookEntity:
     """
     Create a new Book Entry in the database
