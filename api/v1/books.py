@@ -12,7 +12,7 @@ SessionDep = Annotated[Session, Depends(get_db)]
 
 
 @router.get("/v1/books",summary="Retrieve all the books",status_code=200,
-            tags=["book-service"])
+            tags=["books"])
 async def get_all_books(db: SessionDep):
     """
     Return all the available books from the database
@@ -23,7 +23,7 @@ async def get_all_books(db: SessionDep):
 
 
 @router.get("/v1/books/{id}",summary="Retrieve a Book by its ID",
-            status_code=200 , responses={404 : {"description": "Book ID not found"}},  tags=["book-service"])
+            status_code=200 , responses={404 : {"description": "Book ID not found"}},  tags=["books"])
 async def get_book_by_id(id:int , db: SessionDep) -> BookEntity:
     """
     Return a book based on the given ID
@@ -55,8 +55,8 @@ async def create_book(book_data:BookEntity , db: SessionDep) -> BookEntity:
 
 
 @router.put("/v1/books/{id}" , summary="Update a Book entry based on the given Id",
-            status_code=200 , responses={404 : {"description": "Given Book Id not found"}}, tags=["book-service"])
-async def update_book(id: int , book_entry: BookEntity , db:SessionDep) -> BookEntity:
+            status_code=200 , responses={404 : {"description": "Given Book Id not found"}}, tags=["books"])
+async def update_book(id: int , book_entry: BookEntity) -> BookEntity:
     """
     Update a Book entry based on the given ID
     :param book_data:
@@ -68,14 +68,16 @@ async def update_book(id: int , book_entry: BookEntity , db:SessionDep) -> BookE
     with Session(engine) as session:
         book_session = session.get(BookEntity, id)
         if not book_session:
-            raise HTTPException(status_code=404, detail="Book Id not found")
+            raise HTTPException(status_code=404)
+        book_data = book_entry.model_dump(exclude_unset=True)
+        book_session.sqlmodel_update(book_data)
         session.add(book_session)
         session.commit()
-        return {"Updated": True}
+        return book_data
 
 
 @router.delete("/v1/books/{id}" , summary="Delete a Book entry based on the given Id",
-               status_code=204 , responses={404 : {"description": "Given Book Id not found"}}, tags=["book-service"])
+               status_code=204 , responses={404 : {"description": "Given Book Id not found"}}, tags=["books"])
 async def delete_book(id: int):
     """
     Delete a Book entry based on the given Id
@@ -85,10 +87,10 @@ async def delete_book(id: int):
     with Session(engine) as session:
         book_session = session.get(BookEntity, id)
         if not book_session:
-            raise HTTPException(status_code=404, detail="Book Id not found")
+            raise HTTPException(status_code=404)
         session.delete(book_session)
         session.commit()
-        return {"ok": True}
+        return {"Book Entry Deleted": "ok"}
 
 
 
