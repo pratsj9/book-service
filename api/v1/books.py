@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from db.db import get_db
 
-from db.model.BookEntity import BookEntity
+from db.model.Book import Book
 
 router = APIRouter()
 
@@ -19,19 +19,19 @@ async def get_all_books(db: SessionDep) -> list:
     :return: list
     """
     print("Retrieving all books")
-    return db.query(BookEntity).all()
+    return db.query(Book).all()
 
 
 @router.get("/v1/books/{id}",summary="Retrieve a Book by its ID",
             status_code=200 , responses={404 : {"description": "Book ID not found"}},  tags=["books"])
-async def get_book_by_id(id:int , db: SessionDep) -> BookEntity:
+async def get_book_by_id(id:int , db: SessionDep) -> Book:
     """
     Return a book based on the given ID
     :return: BookEntity
     """
     print(f"Retrieving Book details for given id : {id}")
-    book = (db.query(BookEntity)
-            .filter(BookEntity.id == id).first())
+    book = (db.query(Book)
+            .filter(Book.id == id).first())
     if not book:
         raise HTTPException(404 , "Book ID not found")
     return book
@@ -39,7 +39,7 @@ async def get_book_by_id(id:int , db: SessionDep) -> BookEntity:
 
 @router.post("/v1/books", summary="Create a new Book entry",
             status_code=201 ,  tags=["books"])
-async def create_book(book_data:BookEntity , db: SessionDep) -> BookEntity:
+async def create_book(book_data:Book, db: SessionDep) -> Book:
     """
     Create a new Book Entry in the database
     :param db:
@@ -57,7 +57,7 @@ async def create_book(book_data:BookEntity , db: SessionDep) -> BookEntity:
 
 @router.put("/v1/books/{id}" , summary="Update a Book entry based on the given Id",
             status_code=200 , responses={404 : {"description": "Given Book Id not found"}}, tags=["books"])
-async def update_book(id: int , book_entry: BookEntity , db:SessionDep) -> dict:
+async def update_book(id: int, book_entry: Book, db:SessionDep) -> dict:
     """
     Update a Book entry based on the given ID
     :param db:
@@ -66,7 +66,7 @@ async def update_book(id: int , book_entry: BookEntity , db:SessionDep) -> dict:
     :return:
     """
     print(f"Updating the book entry for the given id {id}")
-    book_session = db.get(BookEntity , id)
+    book_session = db.get(Book, id)
     if not book_session:
         raise HTTPException(404,"Book ID not found")
     book_data = book_entry.model_dump(exclude_unset=True)
@@ -84,7 +84,7 @@ async def delete_book(id: int , db:SessionDep):
     :param id:
     :return:
     """
-    book_entry = db.get(BookEntity, id)
+    book_entry = db.get(Book, id)
     if not book_entry:
         raise HTTPException(404,"Book ID not found")
     db.delete(book_entry)
